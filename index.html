@@ -1,192 +1,115 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>Visualizing Game of Thrones</title>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+    <!-- Load the d3 library. -->
+    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <!-- <script src="https://d3js.org/topojson.v1.min.js"></script> -->
 
-	<link rel="stylesheet" type="text/css" href="css/pasteup.min.css">
-	<link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" href="chessboard-0.3.0/css/chessboard-0.3.0.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/json3/3.3.2/json3.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="chessboard-0.3.0/js/chessboard-0.3.0.js"></script>
+    <script src="chessboard-0.3.0/chess.js"></script>
+    <script src="chessboard.js"></script>
+    <script src="colorlegend2.js"></script>
+    <link rel="stylesheet" href="style.css">
 
-	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
-	<script src="http://d3js.org/d3.v3.min.js"></script>
-	<script src="js/jquery.tmpl.min.js"></script>
-	<script>
-		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-		ga('create', 'UA-43046283-2', 'auto');
-		ga('send', 'pageview');
-	</script>
-
-	<script id="charTemplate" type="text/x-jquery-tmpl">
-		<div id='node-name'>${name}</div>
-
-		<div class='node-char' id='node-image-references'>
-			<img src="${imagesrc}" alt="thrones" width="100" height="100">
-		</div>
-		<div class='node-char' id='node-char-appearance'>
-			<div class='node-label'>Status</div>
-			<div class='node-data-color' style='background-color: ${color};'></div>
-			<div class='node-data-short'>${status}</div>
-		</div>
-		<div class='node-char' id='node-death-references'>
-			<div class='node-label'>Death</div>
-			<div class='node-data'></div>
-		</div>
-		<div class='node-char' id='node-episode-references'>
-			<div class='node-label'>Appearance</div>
-			<div class='node-data'>${episodes} episodes</div>
-		</div>
-		<div class='node-char' id='node-season-references'>
-			<div class='node-label'>Season(s)</div>
-			<div class='node-data'></div>
-		</div>
-		<div class='node-char' id='node-house-references'>
-			<div class='node-label'>House</div>
-			<div class='node-data'></div>
-		</div>
-		<div class='node-char' id='node-culture'>
-			<div class='node-label'>Culture</div>
-			<div class='node-data'>${culture}</div>
-		</div>
-		<div class='node-char' id='node-religion'>
-			<div class='node-label'>Religion</div>
-			<div class='node-data'>${religion}</div>
-		</div>
-		<div class='node-char' id='node-portrayed'>
-			<div class='node-label'>Portrayed</div>
-			<div class='node-data'>${portrayed}</div>
-		</div>
-	</script>
-
-	
-	<script id="deathTemplate" type="text/x-jquery-tmpl">
-		<div class='node-char-tags' id='node-tags'>
-			<div class='node-data-color' style='background-color: ${color};'></div>
-			<div class='node-data-wide'>${count} killed by ${name}</div>
-		</div>
-	</script>
-
-	<script id="allegianceTemplate" type="text/x-jquery-tmpl">
-		<div class='node-char-tags' id='node-tags'>
-			<div class='node-data-color' style='background-color: ${color};'></div>
-			<div class='node-data-wide'>${count} characters are in allegiance with ${name}</div>
-		</div>
-	</script>
-
-	<script id="listTemplate" type="text/x-jquery-tmpl">
-		<div class='node-list-item'>${item}</div>
-	</script>
+    <title>Winning Percentages of Chess Openings</title>
 </head>
-
-
-
-
 <body>
-</br>
-
-<img src="Logo_Game_of_Thrones.png">
-
-<div class='wrap'>
-	<div class='row' id='circle-chart-container'>
-		<div class='col-12' id='got-network'></div>
-	</div>
-</div>
-
-		<div class='chart-detail' style='right: 150px; top: 300px; width: 140px; text-align: left;'>
-			<p><svg height="100" width="205">
-				<text x="103" y= "25" fill="black" font-size="12" font-family="garamond" font-weight="bold" text-anchor="middle" alignment-baseline="central">Most Episode Appearances</text>
-
-				<circle cx="35" cy="50" r="9" fill="#D7DEF7"></circle>
-				<circle cx="67.5" cy="50" r="9" fill="#8B9BD9"></circle>
-				<circle cx="100" cy="50" r="9" fill="#5265AE"></circle>
-				<circle cx="132.5" cy="50" r="9" fill="#394B9F"></circle>
-				<circle cx="165" cy="50" r="9" fill="#2C3878"></circle>
-
-				<text x="35" y= "70" fill="black" font-size="10" font-family="garamond" text-anchor="middle" alignment-baseline="central"> 10 </text>
-				<text x="67.5" y= "70" fill="black" font-size="10" font-family="garamond" text-anchor="middle" alignment-baseline="central"> 15 </text>
-				<text x="100" y= "70" fill="black" font-size="10" font-family="garamond" text-anchor="middle" alignment-baseline="central"> 25 </text>
-				<text x="132.5" y= "70" fill="black" font-size="10" font-family="garamond" text-anchor="middle" alignment-baseline="central"> 35 </text>
-				<text x="167.5" y= "70" fill="black" font-size="10" font-family="garamond" text-anchor="middle" alignment-baseline="central"> 35+ </text>
-
-				<text x="100" y= "85" fill="black" font-size="11" font-family="garamond" text-anchor="middle" alignment-baseline="central"> (# episodes appeared in) </text>
-			</svg></p>
-		</div>
 
 
-		<div class='chart-detail' style='right: 150px; top: 400px; width: 140px; text-align: left;'>
-				<p><svg height="100" width="205">
-					<text x="103" y= "25" fill="black" font-size="12" font-family="garamond" font-weight="bold" text-anchor="middle" alignment-baseline="central">Causes of Death</text>
-
-					<circle cx="67.5" cy="50" r="9" fill="#E88B78"></circle>
-					<circle cx="100" cy="50" r="9" fill="#CC2F27"></circle>
-					<circle cx="132.5" cy="50" r="9" fill="#871D1B"></circle>
-
-					<text x="67.5" y= "70" fill="black" font-size="10" font-family="garamond" text-anchor="middle" alignment-baseline="central"> 1 </text>
-					<text x="100" y= "70" fill="black" font-size="10" font-family="garamond" text-anchor="middle" alignment-baseline="central"> 2 </text>
-					<text x="132.5" y= "70" fill="black" font-size="10" font-family="garamond" text-anchor="middle" alignment-baseline="central"> 3+ </text>
-
-					<text x="105" y= "85" fill="black" font-size="11" font-family="garamond" text-anchor="middle" alignment-baseline="central"> (# major characters died this way) </text>
-				</svg></p>
-			</div>
-		</div>
+<div class="heading">Winning Percentages of Chess Openings</div>
 
 
-		<div class='chart-detail' style='right: 150px; top: 500px; width: 140px; text-align: left;'>
-				<p><svg height="100" width="205">
-					<text x="103" y= "25" fill="black" font-size="12" font-family="garamond" font-weight="bold" text-anchor="middle" alignment-baseline="central">House Allegiances</text>
+<div id="myContainer" class="container">
 
-					<circle cx="55" cy="50" r="9" fill="#9DB270"></circle>
-					<circle cx="87.5" cy="50" r="9" fill="#5E843A"></circle>
-					<circle cx="120" cy="50" r="9" fill="#3C602E"></circle>
-					<circle cx="152.5" cy="50" r="9" fill="#1E3B13"></circle>
+    <div id="buttons">
+        <input type="button" id="start" value="restart"/>
+        <input type="button" id="undo" value="undo"/>
+        <input type="button" id="instruction" value="instructions"/>
+    </div>
 
-					<text x="55" y= "70" fill="black" font-size="10" font-family="garamond" text-anchor="middle" alignment-baseline="central"> 1 </text>
-					<text x="87.5" y= "70" fill="black" font-size="10" font-family="garamond" text-anchor="middle" alignment-baseline="central"> 5 </text>
-					<text x="120" y= "70" fill="black" font-size="10" font-family="garamond" text-anchor="middle" alignment-baseline="central"> 10 </text>
-					<text x="152.5" y= "70" fill="black" font-size="10" font-family="garamond" text-anchor="middle" alignment-baseline="central"> 10+ </text>
-
-					<text x="105" y= "85" fill="black" font-size="11" font-family="garamond" text-anchor="middle" alignment-baseline="central"> (# major characters in house) </text>
-				</svg></p>
-			</div>
-		</div>
-	
-	<div>	
-		<div id='anchored-charts' style='left: 80px; top: 150px;  text-align: left;'>
-			<div class='anchored-chart' id='chart-death'>
-				<div class='option-text' font-family="garamond">Death Toll</div>
-
-				<p class='detail-text' >According to online polls, the most important death scene is the Red Wedding, which saw the deaths of Robb Stark (King of the North and Our Hearts), his mother Catelyn Stark, and his pregnant wife, Talisa. Oh, and his direwolf, Grey Wind.</p><br><br>
-				<div class='callout-chart' id='chart-char-death'></div>
-				<br><br>
-				<div class='got-button' id='btn-death'>Show Deceased</div>
-			</div>
-
-			<div class='anchored-chart' id='chart-house'>
-				<br><br><br>
-				<div class='option-text'>Allegiances by Gender</div>
-
-				<p class='detail-text' >Game of Thrones is groundbreaking in its cast of both strong male and female characters. Emilia Clarke's Daenerys has become so popular, 146 baby girls were named Khaleesi in 2013!</p><br><br>
-				<div class='callout-chart' id='chart-char-gender'></div>
-				<br><br>
-				<div class='got-button' id='btn-gender'>Show Male Characters</div>
-			</div>
-		</div>
-	</div>
-
-	<div class='row' style='margin-left: 400px; '>
-		<div class='col-12'>
-			<div id='source'>Sources: <a href="http://gameofthrones.wikia.com/wiki/Game_of_Thrones_Wiki">Game of Thrones Wikia</a> scraped by Python script with <a href="http://www.crummy.com/software/BeautifulSoup/bs4/doc/">Beautiful Soup</a> package.</div>
-		</div>
-	</div>
+    <div id="chessboard" style="width: 400px"></div>
+    <div id="sunburst"></div>
+    <div id="colorlegend" class="colorlegendVertical"></div>
+    <div id="possiblemoves"></div>
 
 </div>
 
-<div id='node-info' class='got-popup'></div>
+<div id="instructionModal" class="modalDialog">
+    <div>
+        <input type="button" id="close" value="&times"/>
 
-<script src="js/main.js"></script>
+        <h1>Instructions</h1>
+
+        <h2>How to Use the Visualization</h2>
+
+        <p>This project shows the winning percentages of both players according to their opening sequences with data
+            from 1000 games. </p>
+
+        <p>The sunburst layout displays the most popular move sequences made during games in our database. Each node is
+            equivalent to making a move (or multiple moves) on the chessboard. Clicking on a node
+            will generate the equivalent move on the chessboard and change the sunburst layout to display the next three
+            most popular move sequences.
+        </p>
+
+        <p>White's moves are depicted by a solid fill and black's moves is depicted by a patterned-fill. The fill color
+            indicates how successful that particular move sequence was for the white player (green = good, red = bad).
+            Finally, while hovering over a node, the first move in that sequence will be highlighted on the board in
+            blue.
+        </p>
+
+        <p>It is also possible to make legal moves directly on the chess board. The sunburst layout should update and
+            display the next three most popular sequences. The sunburst circle becomes gray when a move which is not in
+            our database is made. </p>
+
+        <p>The user may reset the chessboard and the sunburst layout by clicking "restart". The user may undo a move by
+            clicking "undo" or by clicking the center of the sunburst layout. </p>
+
+        <p>The bottom bars show the winning and tie percentages corresponding to the next possible moves that can be
+            made by the current player, given the current state of the game.</p>
+
+        <h2>FAQ</h2>
+
+        <h4>1. How do you calculate the score for a particular move sequence?</h4>
+
+        <p>
+            Score = (# White wins * 1.0 + # Ties * 0.5 + # Black wins * 0.0) / (# White wins + # Ties + # Black wins)
+        </p>
+
+        <h4>2. If a node in the sunburst is bright green does that mean black cannot win once the game has reached this
+            position?</h4>
+
+        <p>No. Even even if the color is bright green this does not mean that in an actual game of chess the
+            black player cannot win. Our visualization only accounts for the games we analyzed.
+        </p>
+
+        <h2>References</h2>
+        <ul>
+            <li>Chess games database: http://www.ficsgames.org/</li>
+            <li>Chessboard API: http://http://chessboardjs.com/</li>
+            <li>Chess library: https://github.com/jhlywa/chess.js</li>
+        </ul>
+
+    </div>
+</div>
+
+
+<!-- <form name="insertMove"> Insert a move in the box: <br>
+  Move: <input type="text" id="move" value="">
+  <input type="button" id="submitMove" name="submit" value="Submit">
+</form>
+
+
+<input type="text" id="inputMove" placeholder="input a move" />
+<input type="button" id="makeMove" value="make the move"/>
+<div>PGN: <span id="pgn"></span></div> -->
+<!--
+<input type="button" id="move1" value="move1">
+<input type="button" id="move2" value="move2"> -->
+
 
 </body>
 </html>
